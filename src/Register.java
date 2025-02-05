@@ -2,8 +2,40 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Cadastro {
+public class Register {
     public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            System.out.println("Menu Principal:");
+            System.out.println("1 - Cadastrar usuário");
+            System.out.println("2 - Listar todos os usuários cadastrados");
+            System.out.println("3 - Cadastrar nova pergunta ao fomrulário");
+            System.out.println("4 - Deletar pergunta do formulãrio");
+            System.out.println("5 - Pesquisar usuário por nome, idade ou email");
+            System.out.println("0 - Sair");
+            System.out.print("Escolha uma opção: ");
+
+            int option = sc.nextInt();
+            sc.nextLine();
+
+            switch (option) {
+                case 1:
+                    registerUser(sc);
+                    break;
+                case 2:
+                    listUsers();
+                    break;
+                case 0:
+                    System.out.println("Saindo...");
+                    sc.close();
+                    return;
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
+            }
+        }
+    }
+
+    public static void registerUser(Scanner sc) {
         String fileName = "formulario.txt";
         List<String> questions = new ArrayList<>();
 
@@ -17,7 +49,6 @@ public class Cadastro {
 
         // Cria um mapa para armazenar as respostas do usuário
         Map<String, String> answers = new LinkedHashMap<>();
-        Scanner sc = new Scanner(System.in);
 
         // Printar perguntas e capturar respostas
         for (String question : questions) {
@@ -26,8 +57,6 @@ public class Cadastro {
             String answer = sc.nextLine();
             answers.put(question, answer);
         }
-
-        sc.close();
 
         // Exibir as respostas
         System.out.println("\nRespostas fornecidas:");
@@ -64,6 +93,24 @@ public class Cadastro {
             }
         } else {
             System.err.println("Nome inválido. Não foi possível criar o arquivo.");
+        }
+    }
+
+    public static void listUsers() {
+        File dir = new File(".");
+        File[] usersFiles = dir.listFiles((d, name) -> name.matches("\\d+-[A-Z]+\\.TXT"));
+
+        if (usersFiles == null || usersFiles.length == 0) {
+            System.out.println("Nenhum usuário cadastrado.");
+            return;
+        }
+
+        System.out.println("\nLista de usuários cadastrados:");
+        int counter = 1;
+        for (File file : usersFiles) {
+            String name = file.getName().split("-", 2)[1].replace(".TXT", "");
+            System.out.println(counter + " - " + name);
+            counter++;
         }
     }
 }
