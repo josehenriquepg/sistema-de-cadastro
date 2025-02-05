@@ -25,6 +25,12 @@ public class Register {
                 case 2:
                     listUsers();
                     break;
+                case 3:
+                    addQuestion(sc);
+                    break;
+                case 4:
+                    deleteQuestion(sc);
+                    break;
                 case 0:
                     System.out.println("Saindo...");
                     sc.close();
@@ -35,7 +41,7 @@ public class Register {
         }
     }
 
-    public static void registerUser(Scanner sc) {
+    private static void registerUser(Scanner sc) {
         String fileName = "formulario.txt";
         List<String> questions = new ArrayList<>();
 
@@ -96,7 +102,7 @@ public class Register {
         }
     }
 
-    public static void listUsers() {
+    private static void listUsers() {
         File dir = new File(".");
         File[] usersFiles = dir.listFiles((d, name) -> name.matches("\\d+-[A-Z]+\\.TXT"));
 
@@ -111,6 +117,59 @@ public class Register {
             String name = file.getName().split("-", 2)[1].replace(".TXT", "");
             System.out.println(counter + " - " + name);
             counter++;
+        }
+    }
+
+    private static void addQuestion(Scanner sc) {
+        System.out.print("Digite a nova pergunta: ");
+        String newQuestion = sc.nextLine();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("formulario.txt", true))) {
+            writer.write(newQuestion);
+            writer.newLine();
+            System.out.println("Pergunta adicionada com sucesso!");
+        } catch (IOException e) {
+            System.err.println("Erro ao adicionar pergunta: " + e.getMessage());
+        }
+    }
+
+    private static void deleteQuestion(Scanner sc) {
+        List<String> questions = new ArrayList<>();
+        String fileName = "formulario.txt";
+
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            questions = br.lines().collect(Collectors.toList());
+        } catch (IOException e) {
+            System.err.println("Erro ao ler o arquivo: " + e.getMessage());
+            return;
+        }
+
+        if (questions.size() <=4) {
+            System.out.println("Só novas perguntas podem ser deletadas.");
+            return;
+        }
+
+        for (int i = 4; i < questions.size(); i++) {
+            System.out.println((i + 1) + " - " + questions.get(i));
+        }
+
+        System.out.print("Digite o número da pergunta a ser removida: ");
+        int index = sc.nextInt();
+        sc.nextLine();
+
+        if (index <= 4 || index > questions.size()) {
+            System.out.println("Operação inválida. Somente perguntas a partir da 5ª podem ser removidas.");
+            return;
+        }
+
+        questions.remove(index - 1);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            for (String question : questions) {
+                writer.write(question);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Erro ao remover pergunta: " + e.getMessage());
         }
     }
 }
