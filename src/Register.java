@@ -31,6 +31,9 @@ public class Register {
                 case 4:
                     deleteQuestion(sc);
                     break;
+                case 5:
+                    searchUser(sc);
+                    break;
                 case 0:
                     System.out.println("Saindo...");
                     sc.close();
@@ -170,6 +173,42 @@ public class Register {
             }
         } catch (IOException e) {
             System.err.println("Erro ao remover pergunta: " + e.getMessage());
+        }
+    }
+
+    private static void searchUser (Scanner sc) {
+        System.out.println("Buscar Usuário.");
+        System.out.print("Nome, idade ou email do usuário: ");
+        String searchTerm = sc.nextLine().toLowerCase();
+
+        File dir = new File(".");
+        File[] files = dir.listFiles((d, name) -> name.matches("\\d+-[A-Z]+\\.TXT"));
+
+        if (files == null || files.length == 0) {
+            System.out.println("Nenhum usuário cadastrado.");
+            return;
+        }
+
+        boolean found = false;
+        for (File file : files) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                List<String> items = br.lines().collect(Collectors.toList());
+                String name = items.get(0).split(" - ")[1];
+                String email = items.get(1).split(" - ")[1];
+                String age = items.get(2).split(" - ")[1];
+
+                if (name.toLowerCase().contains(searchTerm) || email.toLowerCase().contains(searchTerm) || age.toLowerCase().contains(searchTerm)) {
+                    System.out.println("\nUsuário encontrado:");
+                    items.forEach(System.out::println);
+                    found = true;
+                }
+            } catch (IOException e) {
+                System.err.println("Erro ao ler o arquivo: " + e.getMessage());
+            }
+        }
+
+        if (!found) {
+            System.out.println("Nenhum usuário encontrado com o termo informado.");
         }
     }
 }
