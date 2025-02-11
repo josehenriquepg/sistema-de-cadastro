@@ -67,6 +67,13 @@ public class Register {
             answers.put(question, answer);
         }
 
+        try {
+            registerValidate(answers);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Erro: " + e.getMessage());
+            return;
+        }
+
         // Exibir as respostas
         System.out.println("\nRespostas fornecidas:");
         answers.forEach((question, answer) -> System.out.println(question + " " + answer));
@@ -105,6 +112,31 @@ public class Register {
         }
     }
 
+    private static void registerValidate(Map<String, String> respostas) {
+        String name = respostas.get("1 - Qual seu nome completo?");
+        String email = respostas.get("2 - Qual seu email de contato?");
+        String ageStr = respostas.get("3 - Qual sua idade?");
+        String height = respostas.get("4 - Qual sua altura?");
+
+        if (name.length() < 10) {
+            throw new IllegalArgumentException("O nome deve ter pelo menos 10 caracteres.");
+        }
+        if (!email.contains("@")) {
+            throw new IllegalArgumentException("Email inválido. Deve conter '@'.");
+        }
+        try {
+            int age = Integer.parseInt(ageStr);
+            if (age < 18) {
+                throw new IllegalArgumentException("O usuário deve ter mais de 18 anos.");
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Idade deve ser um número válido.");
+        }
+        if (!height.matches("\\d+,\\d+")) {
+            throw new IllegalArgumentException("A altura deve estar no formato correto, ex: 1,75.");
+        }
+    }
+
     private static void listUsers() {
         File dir = new File(".");
         File[] usersFiles = dir.listFiles((d, name) -> name.matches("\\d+-[A-Z]+\\.TXT"));
@@ -124,11 +156,26 @@ public class Register {
     }
 
     private static void addQuestion(Scanner sc) {
+        String fileName = "formulario.txt";
+        List<String> questions = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            questions = br.lines().collect(Collectors.toList());
+        } catch (IOException e) {
+            System.err.println("Erro ao ler o arquivo: " + e.getMessage());
+            return;
+        }
+
         System.out.print("Digite a nova pergunta: ");
         String newQuestion = sc.nextLine();
+        int numQuestion = questions.size() + 1;
+        questions.add(numQuestion + " - " + newQuestion);
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("formulario.txt", true))) {
-            writer.write(newQuestion);
-            writer.newLine();
+            for (String question : questions) {
+                writer.write(question);
+                writer.newLine();
+            }
             System.out.println("Pergunta adicionada com sucesso!");
         } catch (IOException e) {
             System.err.println("Erro ao adicionar pergunta: " + e.getMessage());
@@ -136,8 +183,8 @@ public class Register {
     }
 
     private static void deleteQuestion(Scanner sc) {
-        List<String> questions = new ArrayList<>();
         String fileName = "formulario.txt";
+        List<String> questions = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             questions = br.lines().collect(Collectors.toList());
@@ -155,7 +202,7 @@ public class Register {
             System.out.println((i + 1) + " - " + questions.get(i));
         }
 
-        System.out.print("Digite o número da pergunta a ser removida: ");
+        System.out.print("Digite o número da pergunta que deseja deletar: ");
         int index = sc.nextInt();
         sc.nextLine();
 
@@ -167,10 +214,11 @@ public class Register {
         questions.remove(index - 1);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            for (String question : questions) {
-                writer.write(question);
+            for (int i = 0; i < questions.size(); i++) {
+                writer.write((i + 1) + " - " + questions.get(i).split(" - ", 2)[1]);
                 writer.newLine();
             }
+            System.out.println("Pergunta deletada com sucesso.");
         } catch (IOException e) {
             System.err.println("Erro ao remover pergunta: " + e.getMessage());
         }
